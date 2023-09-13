@@ -132,6 +132,25 @@ app.get("/getNamedKeys", async (req, res) => {
   }
 });
 
+app.get("/getMarketplace", async (req, res) => {
+  const contractHash = req.query.contractHash;
+
+  try {
+    const contract = new Contracts.Contract(client);
+    contract.setContractHash(contractHash);
+
+    let marketplace = {};
+
+    marketplace.contractName = await contract.queryContractData(["contract_name"]);
+
+    marketplace.listingCount = await contract.queryContractData(["listing_counter"]);
+
+    return res.send(marketplace);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
+
 app.post("/add_listing", async (req, res) => {
   const data = req.body;
 });
