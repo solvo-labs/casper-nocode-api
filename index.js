@@ -153,6 +153,28 @@ app.get("/getMarketplace", async (req, res) => {
 
 app.post("/add_listing", async (req, res) => {
   const data = req.body;
+
+  const listingInstance = new Listing({
+    marketplace: data.marketplace,
+    collection: data.collection,
+    price: data.price,
+    tokenId: data.tokenId,
+    nftName: data.nftName,
+    nftDescription: data.nftDescription,
+    nftImage: data.nftImage,
+    listingIndex: data.listingIndex,
+  });
+
+  listingInstance
+    .save(listingInstance)
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "Some error occurred while creating the Tutorial.",
+      });
+    });
 });
 
 app.listen(port, () => {

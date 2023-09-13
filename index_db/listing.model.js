@@ -1,9 +1,14 @@
 module.exports = (mongoose) => {
   var schema = mongoose.Schema(
     {
-      title: String,
-      description: String,
-      published: Boolean,
+      marketplace: String,
+      collection_hash: String,
+      price: String,
+      tokenId: String,
+      nftName: String,
+      nftDescription: String,
+      nftImage: String,
+      listingIndex: String,
     },
     { timestamps: true }
   );
