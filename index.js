@@ -163,6 +163,7 @@ app.post("/add_listing", async (req, res) => {
     nftDescription: data.nftDescription,
     nftImage: data.nftImage,
     listingIndex: data.listingIndex,
+    active: true,
   });
 
   listingInstance
@@ -172,7 +173,23 @@ app.post("/add_listing", async (req, res) => {
     })
     .catch((err) => {
       res.status(500).send({
-        message: err.message || "Some error occurred while creating the Tutorial.",
+        message: err.message || "Some error occurred while creating the listings.",
+      });
+    });
+});
+
+app.post("/fetch_listing", async (req, res) => {
+  const marketplaceContract = req.query.contractHash;
+
+  const condition = { marketplace: { $regex: new RegExp(marketplaceContract), $options: "i" }, active: true };
+
+  Listing.find(condition)
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "Some error occurred while retrieving listings.",
       });
     });
 });

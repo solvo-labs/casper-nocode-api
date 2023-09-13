@@ -9,6 +9,7 @@ module.exports = (mongoose) => {
       nftDescription: String,
       nftImage: String,
       listingIndex: String,
+      active: Boolean,
     },
     { timestamps: true }
   );
