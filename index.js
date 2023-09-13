@@ -178,10 +178,24 @@ app.post("/add_listing", async (req, res) => {
     });
 });
 
-app.get("/fetch_listing", async (req, res) => {
+app.get("/fetch_my_listing", async (req, res) => {
   const marketplaceContract = req.query.contractHash;
 
-  const condition = { marketplace: { $regex: new RegExp(marketplaceContract), $options: "i" }, active: true };
+  const condition = { marketplace: { $regex: new RegExp(marketplaceContract), $options: "i" } };
+
+  Listing.find(condition)
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "Some error occurred while retrieving listings.",
+      });
+    });
+});
+
+app.get("/fetch_listing", async (req, res) => {
+  const condition = { active: true };
 
   Listing.find(condition)
     .then((data) => {
