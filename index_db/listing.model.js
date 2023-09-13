@@ -3,12 +3,12 @@ module.exports = (mongoose) => {
     {
       marketplace: String,
       collection_hash: String,
-      price: String,
-      tokenId: String,
+      price: Number,
+      tokenId: Number,
       nftName: String,
       nftDescription: String,
       nftImage: String,
-      listingIndex: String,
+      listingIndex: Number,
       active: Boolean,
     },
     { timestamps: true }
