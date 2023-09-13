@@ -178,7 +178,7 @@ app.post("/add_listing", async (req, res) => {
     });
 });
 
-app.post("/fetch_listing", async (req, res) => {
+app.get("/fetch_listing", async (req, res) => {
   const marketplaceContract = req.query.contractHash;
 
   const condition = { marketplace: { $regex: new RegExp(marketplaceContract), $options: "i" }, active: true };
