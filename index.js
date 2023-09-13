@@ -156,7 +156,7 @@ app.post("/add_listing", async (req, res) => {
 
   const listingInstance = new Listing({
     marketplace: data.marketplace,
-    collection: data.collection,
+    collection_hash: data.collection,
     price: data.price,
     tokenId: data.tokenId,
     nftName: data.nftName,
