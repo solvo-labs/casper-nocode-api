@@ -208,7 +208,7 @@ app.get("/fetch_listing", async (req, res) => {
     });
 });
 
-app.get("/get-vesting-contract", async (req, res) => {
+app.get("/get_vesting_contract", async (req, res) => {
   const contractHash = req.query.contractHash;
 
   try {
