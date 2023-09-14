@@ -3,7 +3,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const { CasperClient, Contracts, RuntimeArgs, CLValueBuilder, CLPublicKey, DeployUtil, CasperServiceByJsonRPC } = require("casper-js-sdk");
 const { getNamedKeys } = require("./utils");
-const port = process.env.PORT || 1923;
+const port = process.env.PORT || 3000;
 const app = express();
 
 const db = require("./index_db");
