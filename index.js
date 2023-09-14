@@ -208,6 +208,34 @@ app.get("/fetch_listing", async (req, res) => {
     });
 });
 
+app.get("/get-vesting-contract", async (req, res) => {
+  const contractHash = req.query.contractHash;
+
+  try {
+    const contract = new Contracts.Contract(client);
+    contract.setContractHash(contractHash);
+
+    let vesting = {};
+
+    vesting.contract_name = await contract.queryContractData(["contract_name"]);
+    vesting.cep18_contract_hash = await contract.queryContractData(["cep18_contract_hash"]);
+    vesting.cliff_timestamp = await contract.queryContractData(["cliff_timestamp"]);
+    vesting.duration = await contract.queryContractData(["duration"]);
+    vesting.end_date = await contract.queryContractData(["end_date"]);
+    vesting.owner = await contract.queryContractData(["owner"]);
+    vesting.period = await contract.queryContractData(["period"]);
+    vesting.recipient_count = await contract.queryContractData(["recipient_count"]);
+    vesting.release_date = await contract.queryContractData(["release_date"]);
+    vesting.released = await contract.queryContractData(["released"]);
+    vesting.start_date = await contract.queryContractData(["start_date"]);
+    vesting.vesting_amount = await contract.queryContractData(["vesting_amount"]);
+
+    return res.send(vesting);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
+
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
 });
