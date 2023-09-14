@@ -272,8 +272,6 @@ app.get("/set_vesting_recipients", async (req, res) => {
     };
   });
 
-  console.log(finalData);
-
   Vesting.insertMany(finalData)
     .then((data) => {
       res.send(data);
@@ -284,6 +282,45 @@ app.get("/set_vesting_recipients", async (req, res) => {
       });
     });
 });
+
+app.get("/get_vesting_list", async (req, res) => {
+  const accountHash = req.query.accountHash;
+
+  try {
+    const condition = { recipient: { $regex: new RegExp(accountHash), $options: "i" } };
+    const vestingList = await Vesting.find(condition);
+
+    const contractPromises = vestingList.map((vl) => fetchVestingContract(vl.v_contract, vl.v_index));
+    const contractData = await Promise.all(contractPromises);
+
+    const finalData = vestingList.map((vt, index) => {
+      return { ...vt._doc, ...contractData[index] };
+    });
+
+    console.log(finalData);
+
+    return res.send(finalData);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
+
+const fetchVestingContract = async (contractHash, index) => {
+  const contract = new Contracts.Contract(client);
+  contract.setContractHash(contractHash);
+
+  let vesting = {};
+
+  vesting.contract_name = await contract.queryContractData(["contract_name"]);
+  vesting.end_date = await contract.queryContractData(["end_date"]);
+  vesting.owner = await contract.queryContractData(["owner"]);
+  vesting.release_date = await contract.queryContractData(["release_date"]);
+  vesting.cliff_timestamp = await contract.queryContractData(["cliff_timestamp"]);
+  vesting.vesting_amount = await contract.queryContractData(["vesting_amount"]);
+  vesting.claimed_amount = await contract.queryContractDictionary("claimed_dict", index.toString());
+
+  return vesting;
+};
 
 const uit32ArrayToHex = (data) => {
   return Object.values(data)
