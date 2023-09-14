@@ -9,6 +9,7 @@ const app = express();
 const db = require("./index_db");
 
 const Listing = db.listings;
+const Vesting = db.vestings;
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb" }));
@@ -236,34 +237,59 @@ app.get("/get_vesting_contract", async (req, res) => {
   }
 });
 
-app.get("/get_vesting_recipients", async (req, res) => {
+app.get("/set_vesting_recipients", async (req, res) => {
   const contractHash = req.query.contractHash;
+  console.log(contractHash);
 
-  try {
-    const contract = new Contracts.Contract(client);
-    contract.setContractHash(contractHash);
+  const contract = new Contracts.Contract(client);
+  contract.setContractHash(contractHash);
 
-    const recipient_count = await contract.queryContractData(["recipient_count"]);
-    let recipientsPromises = [];
-    let allocationsPromises = [];
+  const recipient_count = await contract.queryContractData(["recipient_count"]);
+  const cep18_contract_hash = await contract.queryContractData(["cep18_contract_hash"]);
+  const cep18_contract_hash_hex = uit32ArrayToHex(cep18_contract_hash);
 
-    for (let index = 0; index < recipient_count; index++) {
-      recipientsPromises.push(contract.queryContractDictionary("recipients_dict", index.toString()));
-      allocationsPromises.push(contract.queryContractDictionary("allocations_dict", index.toString()));
-    }
+  console.log(cep18_contract_hash_hex);
 
-    const recipients = await Promise.all(recipientsPromises);
-    const allocations = await Promise.all(allocationsPromises);
+  let recipientsPromises = [];
+  let allocationsPromises = [];
 
-    const finalData = recipients.map((rec, index) => {
-      return { index, recipient: rec, allocation: allocations[index] };
-    });
-
-    return res.send(finalData);
-  } catch (err) {
-    return res.status(500).send(err);
+  for (let index = 0; index < recipient_count; index++) {
+    recipientsPromises.push(contract.queryContractDictionary("recipients_dict", index.toString()));
+    allocationsPromises.push(contract.queryContractDictionary("allocations_dict", index.toString()));
   }
+
+  const recipients = await Promise.all(recipientsPromises);
+  const allocations = await Promise.all(allocationsPromises);
+
+  const finalData = recipients.map((rec, index) => {
+    console.log(allocations[index].data.toNumber());
+    return {
+      v_index: index,
+      recipient: uit32ArrayToHex(rec.data.data),
+      allocation: allocations[index].data.toNumber(),
+      v_token: "hash-" + cep18_contract_hash_hex,
+      v_contract: contractHash,
+    };
+  });
+
+  console.log(finalData);
+
+  Vesting.insertMany(finalData)
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "Some error occurred while creating the vestings.",
+      });
+    });
 });
+
+const uit32ArrayToHex = (data) => {
+  return Object.values(data)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+};
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
