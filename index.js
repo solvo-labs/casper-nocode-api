@@ -297,8 +297,6 @@ app.get("/get_vesting_list", async (req, res) => {
       return { ...vt._doc, ...contractData[index] };
     });
 
-    console.log(finalData);
-
     return res.send(finalData);
   } catch (err) {
     return res.status(500).send(err);
