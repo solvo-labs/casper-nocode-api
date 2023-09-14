@@ -30,11 +30,11 @@ db.mongoose
     process.exit();
   });
 
-app.get("/", async (req, res) => {
+app.get("/api/", async (req, res) => {
   return res.send("hello world");
 });
 
-app.post("/deploy", async (req, res) => {
+app.post("/api/deploy", async (req, res) => {
   try {
     const deploy = DeployUtil.deployFromJson(req.body).unwrap();
     const deployHash = await client.putDeploy(deploy);
@@ -44,7 +44,7 @@ app.post("/deploy", async (req, res) => {
   }
 });
 
-app.get("/getERC20Token", async (req, res) => {
+app.get("/api/getERC20Token", async (req, res) => {
   const contractHash = req.query.contractHash;
 
   try {
@@ -68,7 +68,7 @@ app.get("/getERC20Token", async (req, res) => {
   }
 });
 
-app.get("/stateRootHash", async (req, res) => {
+app.get("/api/stateRootHash", async (req, res) => {
   try {
     const instance = new CasperServiceByJsonRPC("https://rpc.testnet.casperlabs.io/rpc");
 
@@ -79,7 +79,7 @@ app.get("/stateRootHash", async (req, res) => {
   }
 });
 
-app.get("/getCollection", async (req, res) => {
+app.get("/api/getCollection", async (req, res) => {
   const contractHash = req.query.contractHash;
 
   try {
@@ -100,7 +100,7 @@ app.get("/getCollection", async (req, res) => {
   }
 });
 
-app.get("/getNftMetadata", async (req, res) => {
+app.get("/api/getNftMetadata", async (req, res) => {
   const contractHash = req.query.contractHash;
   const index = req.query.index;
 
@@ -116,7 +116,7 @@ app.get("/getNftMetadata", async (req, res) => {
   }
 });
 
-app.get("/getNamedKeys", async (req, res) => {
+app.get("/api/getNamedKeys", async (req, res) => {
   const pubkey = req.query.pubkey;
 
   try {
@@ -133,7 +133,7 @@ app.get("/getNamedKeys", async (req, res) => {
   }
 });
 
-app.get("/getMarketplace", async (req, res) => {
+app.get("/api/getMarketplace", async (req, res) => {
   const contractHash = req.query.contractHash;
 
   try {
@@ -152,7 +152,7 @@ app.get("/getMarketplace", async (req, res) => {
   }
 });
 
-app.post("/add_listing", async (req, res) => {
+app.post("/api/add_listing", async (req, res) => {
   const data = req.body;
 
   const listingInstance = new Listing({
@@ -179,7 +179,7 @@ app.post("/add_listing", async (req, res) => {
     });
 });
 
-app.get("/fetch_my_listing", async (req, res) => {
+app.get("/api/fetch_my_listing", async (req, res) => {
   const marketplaceContract = req.query.contractHash;
 
   const condition = { marketplace: { $regex: new RegExp(marketplaceContract), $options: "i" } };
@@ -195,7 +195,7 @@ app.get("/fetch_my_listing", async (req, res) => {
     });
 });
 
-app.get("/fetch_listing", async (req, res) => {
+app.get("/api/fetch_listing", async (req, res) => {
   const condition = { active: true };
 
   Listing.find(condition)
@@ -209,7 +209,7 @@ app.get("/fetch_listing", async (req, res) => {
     });
 });
 
-app.get("/get_vesting_contract", async (req, res) => {
+app.get("/api/get_vesting_contract", async (req, res) => {
   const contractHash = req.query.contractHash;
 
   try {
@@ -237,7 +237,7 @@ app.get("/get_vesting_contract", async (req, res) => {
   }
 });
 
-app.get("/set_vesting_recipients", async (req, res) => {
+app.get("/api/set_vesting_recipients", async (req, res) => {
   const contractHash = req.query.contractHash;
   console.log(contractHash);
 
@@ -283,7 +283,7 @@ app.get("/set_vesting_recipients", async (req, res) => {
     });
 });
 
-app.get("/get_vesting_list", async (req, res) => {
+app.get("/api/get_vesting_list", async (req, res) => {
   const accountHash = req.query.accountHash;
 
   try {
