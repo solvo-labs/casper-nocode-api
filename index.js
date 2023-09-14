@@ -236,6 +236,35 @@ app.get("/get_vesting_contract", async (req, res) => {
   }
 });
 
+app.get("/get_vesting_recipients", async (req, res) => {
+  const contractHash = req.query.contractHash;
+
+  try {
+    const contract = new Contracts.Contract(client);
+    contract.setContractHash(contractHash);
+
+    const recipient_count = await contract.queryContractData(["recipient_count"]);
+    let recipientsPromises = [];
+    let allocationsPromises = [];
+
+    for (let index = 0; index < recipient_count; index++) {
+      recipientsPromises.push(contract.queryContractDictionary("recipients_dict", index.toString()));
+      allocationsPromises.push(contract.queryContractDictionary("allocations_dict", index.toString()));
+    }
+
+    const recipients = await Promise.all(recipientsPromises);
+    const allocations = await Promise.all(allocationsPromises);
+
+    const finalData = recipients.map((rec, index) => {
+      return { index, recipient: rec, allocation: allocations[index] };
+    });
+
+    return res.send(finalData);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
+
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
 });
