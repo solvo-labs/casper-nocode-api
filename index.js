@@ -10,9 +10,10 @@ const db = require("./index_db");
 
 const Listing = db.listings;
 const Vesting = db.vestings;
+const { fetchVestingContract, uint32ArrayToHex } = require("./lib/index");
 
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb" }));
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(cors());
 
 const client = new CasperClient("https://rpc.testnet.casperlabs.io/rpc");
@@ -246,7 +247,7 @@ app.get("/api/set_vesting_recipients", async (req, res) => {
 
   const recipient_count = await contract.queryContractData(["recipient_count"]);
   const cep18_contract_hash = await contract.queryContractData(["cep18_contract_hash"]);
-  const cep18_contract_hash_hex = uit32ArrayToHex(cep18_contract_hash);
+  const cep18_contract_hash_hex = uint32ArrayToHex(cep18_contract_hash);
 
   console.log(cep18_contract_hash_hex);
 
@@ -265,7 +266,7 @@ app.get("/api/set_vesting_recipients", async (req, res) => {
     console.log(allocations[index].data.toNumber());
     return {
       v_index: index,
-      recipient: uit32ArrayToHex(rec.data.data),
+      recipient: uint32ArrayToHex(rec.data.data),
       allocation: allocations[index].data.toNumber(),
       v_token: "hash-" + cep18_contract_hash_hex,
       v_contract: contractHash,
@@ -303,29 +304,29 @@ app.get("/api/get_vesting_list", async (req, res) => {
   }
 });
 
-const fetchVestingContract = async (contractHash, index) => {
-  const contract = new Contracts.Contract(client);
-  contract.setContractHash(contractHash);
-
-  let vesting = {};
-
-  vesting.contract_name = await contract.queryContractData(["contract_name"]);
-  vesting.end_date = await contract.queryContractData(["end_date"]);
-  vesting.owner = await contract.queryContractData(["owner"]);
-  vesting.release_date = await contract.queryContractData(["release_date"]);
-  vesting.cliff_timestamp = await contract.queryContractData(["cliff_timestamp"]);
-  vesting.vesting_amount = await contract.queryContractData(["vesting_amount"]);
-  vesting.claimed_amount = await contract.queryContractDictionary("claimed_dict", index.toString());
-
-  return vesting;
-};
-
-const uit32ArrayToHex = (data) => {
-  return Object.values(data)
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-};
-
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
+});
+
+app.get("/api/get_raffle", async (req, res) => {
+  const contractHash = req.query.contractHash;
+
+  try {
+    const contract = new Contracts.Contract(client);
+    contract.setContractHash(contractHash);
+
+    let raffle = {};
+
+    raffle.owner = await contract.queryContractData(["owner"]);
+    raffle.name = await contract.queryContractData(["name"]);
+    raffle.collection = await contract.queryContractData(["collection"]);
+    raffle.nft_index = await contract.queryContractData(["nft_index"]);
+    raffle.start_date = await contract.queryContractData(["start_data"]);
+    raffle.end_date = await contract.queryContractData(["end_date"]);
+    raffle.price = await contract.queryContractData(["price"]);
+
+    return res.send(raffle);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
