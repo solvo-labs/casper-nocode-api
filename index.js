@@ -10,7 +10,7 @@ const db = require("./index_db");
 
 const Listing = db.listings;
 const Vesting = db.vestings;
-const { fetchVestingContract, uint32ArrayToHex } = require("./lib/index");
+const { fetchVestingContract, uint32ArrayToHex, getValidators } = require("./lib/index");
 
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
@@ -304,10 +304,6 @@ app.get("/api/get_vesting_list", async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`App listening on port ${port}`);
-});
-
 app.get("/api/get_raffle", async (req, res) => {
   const contractHash = req.query.contractHash;
 
@@ -329,4 +325,18 @@ app.get("/api/get_raffle", async (req, res) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+});
+
+app.get("/api/validators", async (req, res) => {
+  try {
+    const validators = await getValidators(client);
+
+    return res.send(validators);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
+
+app.listen(port, () => {
+  console.log(`App listening on port ${port}`);
 });
