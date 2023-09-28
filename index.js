@@ -321,7 +321,7 @@ app.get("/api/get_raffle", async (req, res) => {
     raffle.name = await contract.queryContractData(["name"]);
     raffle.collection = await contract.queryContractData(["collection"]);
     raffle.nft_index = await contract.queryContractData(["nft_index"]);
-    raffle.start_date = await contract.queryContractData(["start_data"]);
+    raffle.start_date = await contract.queryContractData(["start_date"]);
     raffle.end_date = await contract.queryContractData(["end_date"]);
     raffle.price = await contract.queryContractData(["price"]);
 
