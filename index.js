@@ -130,7 +130,7 @@ app.get("/api/getNamedKeys", async (req, res) => {
     return res.send(data.namedKeys);
   } catch (err) {
     console.log(err);
-    return res.status(500).send(err);
+    return res.status(500).send([]);
   }
 });
 
