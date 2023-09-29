@@ -350,7 +350,7 @@ app.get("/api/get_all_raffles", async (req, res) => {
     const rafflesContractHashes = promiseResult.map((raffle) => "hash-" + raffle.data);
 
     const rafflePromisses = rafflesContractHashes.map((raffleHash) => getRaffle(raffleHash, client));
-    console.log(rafflePromisses);
+
     const raffles = await Promise.all(rafflePromisses);
 
     console.log(raffles);
