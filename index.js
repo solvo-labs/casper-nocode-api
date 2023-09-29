@@ -10,7 +10,7 @@ const db = require("./index_db");
 
 const Listing = db.listings;
 const Vesting = db.vestings;
-const { fetchVestingContract, uint32ArrayToHex, getValidators } = require("./lib/index");
+const { fetchVestingContract, getRaffle, uint32ArrayToHex, getValidators } = require("./lib/index");
 
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
@@ -291,7 +291,7 @@ app.get("/api/get_vesting_list", async (req, res) => {
     const condition = { recipient: { $regex: new RegExp(accountHash), $options: "i" } };
     const vestingList = await Vesting.find(condition);
 
-    const contractPromises = vestingList.map((vl) => fetchVestingContract(vl.v_contract, vl.v_index));
+    const contractPromises = vestingList.map((vl) => fetchVestingContract(vl.v_contract, vl.v_index, client));
     const contractData = await Promise.all(contractPromises);
 
     const finalData = vestingList.map((vt, index) => {
@@ -308,18 +308,7 @@ app.get("/api/get_raffle", async (req, res) => {
   const contractHash = req.query.contractHash;
 
   try {
-    const contract = new Contracts.Contract(client);
-    contract.setContractHash(contractHash);
-
-    let raffle = {};
-
-    raffle.owner = await contract.queryContractData(["owner"]);
-    raffle.name = await contract.queryContractData(["name"]);
-    raffle.collection = await contract.queryContractData(["collection"]);
-    raffle.nft_index = await contract.queryContractData(["nft_index"]);
-    raffle.start_date = await contract.queryContractData(["start_date"]);
-    raffle.end_date = await contract.queryContractData(["end_date"]);
-    raffle.price = await contract.queryContractData(["price"]);
+    const raffle = await getRaffle(contractHash, client);
 
     return res.send(raffle);
   } catch (err) {
@@ -339,4 +328,35 @@ app.get("/api/validators", async (req, res) => {
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
+});
+
+app.get("/api/get_all_raffles", async (req, res) => {
+  const contractHash = req.query.contractHash;
+
+  try {
+    const contract = new Contracts.Contract(client);
+    contract.setContractHash(contractHash);
+
+    const data_count = await contract.queryContractData(["data_count"]);
+    const count = parseInt(data_count._hex, 16);
+
+    let promisses = [];
+    for (let index = 0; index < count; index++) {
+      const result = contract.queryContractDictionary("data_dict", index.toString());
+      promisses.push(result);
+    }
+
+    const promiseResult = await Promise.all(promisses);
+    const rafflesContractHashes = promiseResult.map((raffle) => "hash-" + raffle.data);
+
+    const rafflePromisses = rafflesContractHashes.map((raffleHash) => getRaffle(raffleHash, client));
+    console.log(rafflePromisses);
+    const raffles = await Promise.all(rafflePromisses);
+
+    console.log(raffles);
+
+    return res.send(raffles);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
 });
