@@ -353,9 +353,9 @@ app.get("/api/get_all_raffles", async (req, res) => {
 
     const raffles = await Promise.all(rafflePromisses);
 
-    console.log(raffles);
+    const filteredData = raffles.filter((rf) => rf.partipiciant_count);
 
-    return res.send(raffles);
+    return res.send(filteredData);
   } catch (err) {
     return res.status(500).send(err);
   }
