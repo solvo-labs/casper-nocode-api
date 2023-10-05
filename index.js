@@ -368,9 +368,9 @@ app.get("/api/getbalance", async (req, res) => {
   client
     .balanceOfByPublicKey(CLPublicKey.fromHex(pubkey))
     .then((data) => {
-      res.send(data);
+      return res.send(data);
     })
     .catch((error) => {
-      res.status(500).send(error);
+      return res.status(500).send(error);
     });
 });
