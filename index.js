@@ -125,9 +125,12 @@ app.get("/api/getNamedKeys", async (req, res) => {
 
     const stateRootHash = await instance.getStateRootHash();
 
-    const data = await getNamedKeys(client, stateRootHash, CLPublicKey.fromHex(pubkey));
-
-    return res.send(data.namedKeys);
+    try {
+      const data = await getNamedKeys(client, stateRootHash, CLPublicKey.fromHex(pubkey));
+      return res.send(data.namedKeys);
+    } catch {
+      return res.send([]);
+    }
   } catch (err) {
     console.log(err);
     return res.status(500).send([]);
