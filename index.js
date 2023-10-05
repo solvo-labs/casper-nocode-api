@@ -361,3 +361,16 @@ app.get("/api/get_all_raffles", async (req, res) => {
     return res.status(500).send(err);
   }
 });
+
+app.get("/api/getbalance", async (req, res) => {
+  const pubkey = req.query.publickey;
+
+  client
+    .balanceOfByPublicKey(CLPublicKey.fromHex(pubkey))
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((error) => {
+      res.status(500).send(error);
+    });
+});
