@@ -5,6 +5,7 @@ const { CasperClient, Contracts, RuntimeArgs, CLValueBuilder, CLPublicKey, Deplo
 const { getNamedKeys } = require("./utils");
 const port = process.env.PORT || 3000;
 const app = express();
+const NodeCache = require("node-cache");
 
 const db = require("./index_db");
 
@@ -12,9 +13,15 @@ const Listing = db.listings;
 const Vesting = db.vestings;
 const { fetchVestingContract, getRaffle, uint32ArrayToHex, getValidators } = require("./lib/index");
 
+const toolCache = new NodeCache();
+
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(cors());
+
+const cache30minTTL = 1800 * 1000; //  30 minutes
+const cache5minTTL = 300 * 1000; //  30 minutes
+const cache1minTTL = 60 * 1000; //  30 minutes
 
 const client = new CasperClient("https://rpc.testnet.casperlabs.io/rpc");
 
@@ -39,6 +46,8 @@ app.post("/api/deploy", async (req, res) => {
   try {
     const deploy = DeployUtil.deployFromJson(req.body).unwrap();
     const deployHash = await client.putDeploy(deploy);
+
+    toolCache.flushAll();
     res.send(deployHash);
   } catch (error) {
     res.status(400).send(error.message);
@@ -49,6 +58,12 @@ app.get("/api/getERC20Token", async (req, res) => {
   const contractHash = req.query.contractHash;
 
   try {
+    const cache = toolCache.get("erc20-token" + contractHash);
+
+    if (cache) {
+      return res.send(cache);
+    }
+
     const contract = new Contracts.Contract(client);
     contract.setContractHash(contractHash);
 
@@ -61,7 +76,7 @@ app.get("/api/getERC20Token", async (req, res) => {
     token.balances = await contract.queryContractData(["balances"]);
     token.enable_mint_burn = await contract.queryContractData(["enable_mint_burn"]);
 
-    console.log(await contract.queryContractData(["allowances"]));
+    toolCache.set("erc20-token" + contractHash, token, cache30minTTL);
 
     return res.send(token);
   } catch (err) {
@@ -124,9 +139,17 @@ app.get("/api/getNamedKeys", async (req, res) => {
     const instance = new CasperServiceByJsonRPC("https://rpc.testnet.casperlabs.io/rpc");
 
     const stateRootHash = await instance.getStateRootHash();
+    const cache = toolCache.get("named-key" + pubkey);
+
+    if (cache) {
+      return res.send(cache);
+    }
 
     try {
       const data = await getNamedKeys(client, stateRootHash, CLPublicKey.fromHex(pubkey));
+
+      toolCache.set("named-key" + pubkey, data.namedKeys, [cache5minTTL]);
+
       return res.send(data.namedKeys);
     } catch {
       return res.send([]);
@@ -215,6 +238,13 @@ app.get("/api/fetch_listing", async (req, res) => {
 
 app.get("/api/get_vesting_contract", async (req, res) => {
   const contractHash = req.query.contractHash;
+  const key = "vesting_contract" + contractHash;
+
+  const cache = toolCache.get(key);
+
+  if (cache) {
+    return res.send(cache);
+  }
 
   try {
     const contract = new Contracts.Contract(client);
@@ -235,6 +265,7 @@ app.get("/api/get_vesting_contract", async (req, res) => {
     vesting.start_date = await contract.queryContractData(["start_date"]);
     vesting.vesting_amount = await contract.queryContractData(["vesting_amount"]);
 
+    toolCache.set(key, vesting, cache30minTTL);
     return res.send(vesting);
   } catch (err) {
     return res.status(500).send(err);
@@ -243,7 +274,6 @@ app.get("/api/get_vesting_contract", async (req, res) => {
 
 app.get("/api/set_vesting_recipients", async (req, res) => {
   const contractHash = req.query.contractHash;
-  console.log(contractHash);
 
   const contract = new Contracts.Contract(client);
   contract.setContractHash(contractHash);
@@ -251,8 +281,6 @@ app.get("/api/set_vesting_recipients", async (req, res) => {
   const recipient_count = await contract.queryContractData(["recipient_count"]);
   const cep18_contract_hash = await contract.queryContractData(["cep18_contract_hash"]);
   const cep18_contract_hash_hex = uint32ArrayToHex(cep18_contract_hash);
-
-  console.log(cep18_contract_hash_hex);
 
   let recipientsPromises = [];
   let allocationsPromises = [];
@@ -364,10 +392,17 @@ app.get("/api/get_all_raffles", async (req, res) => {
 
 app.get("/api/getbalance", async (req, res) => {
   const pubkey = req.query.publickey;
+  const cache = toolCache.get("balance" + pubkey);
+
+  if (cache) {
+    return res.send(cache);
+  }
 
   client
     .balanceOfByPublicKey(CLPublicKey.fromHex(pubkey))
     .then((data) => {
+      toolCache.set("balance" + pubkey, data, cache1minTTL);
+
       return res.send(data);
     })
     .catch((error) => {
