@@ -19,9 +19,9 @@ app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(cors());
 
-const cache30minTTL = 1800 * 1000; //  30 minutes
-const cache5minTTL = 300 * 1000; //  30 minutes
-const cache1minTTL = 60 * 1000; //  30 minutes
+const cache30minTTL = 1800; //  30 minutes
+const cache5minTTL = 300; //  30 minutes
+const cache1minTTL = 60; //  30 minutes
 
 const client = new CasperClient("https://rpc.testnet.casperlabs.io/rpc");
 
@@ -97,6 +97,12 @@ app.get("/api/stateRootHash", async (req, res) => {
 
 app.get("/api/getCollection", async (req, res) => {
   const contractHash = req.query.contractHash;
+  const key = "collection" + contractHash;
+  const cache = toolCache.get(key);
+
+  if (cache) {
+    return res.send(cache);
+  }
 
   try {
     const contract = new Contracts.Contract(client);
@@ -110,6 +116,7 @@ app.get("/api/getCollection", async (req, res) => {
     collection.number_of_minted_tokens = await contract.queryContractData(["number_of_minted_tokens"]);
     collection.json_schema = await contract.queryContractData(["json_schema"]);
 
+    toolCache.set(key, collection, cache30minTTL);
     return res.send(collection);
   } catch (err) {
     return res.status(500).send(err);
@@ -120,12 +127,20 @@ app.get("/api/getNftMetadata", async (req, res) => {
   const contractHash = req.query.contractHash;
   const index = req.query.index;
 
+  const key = "nft" + contractHash + index.toString();
+  const cache = toolCache.get(key);
+
+  if (cache) {
+    return res.send(cache);
+  }
+
   try {
     const contract = new Contracts.Contract(client);
     contract.setContractHash(contractHash);
 
     const result = await contract.queryContractDictionary("metadata_raw", index);
 
+    toolCache.set(key, result, cache30minTTL);
     return res.send(result);
   } catch (err) {
     return res.status(500).send(err);
@@ -363,6 +378,12 @@ app.listen(port, () => {
 
 app.get("/api/get_all_raffles", async (req, res) => {
   const contractHash = req.query.contractHash;
+  const key = "get_all_raffles" + contractHash;
+  const cache = toolCache.get(key);
+
+  if (cache) {
+    return res.send(cache);
+  }
 
   try {
     const contract = new Contracts.Contract(client);
@@ -383,6 +404,8 @@ app.get("/api/get_all_raffles", async (req, res) => {
     const rafflePromisses = rafflesContractHashes.map((raffleHash) => getRaffle(raffleHash, client));
 
     const raffles = await Promise.all(rafflePromisses);
+
+    toolCache.set(key, raffles, cache1minTTL);
 
     return res.send(raffles);
   } catch (err) {
