@@ -164,7 +164,7 @@ app.get("/api/getNamedKeys", async (req, res) => {
     try {
       const data = await getNamedKeys(client, stateRootHash, CLPublicKey.fromHex(pubkey));
 
-      toolCache.set("named-key" + pubkey, data.namedKeys, cache2minTTL);
+      toolCache.set("named-key" + pubkey, data.namedKeys, cache1minTTL);
 
       return res.send(data.namedKeys);
     } catch {
