@@ -373,8 +373,17 @@ app.get("/api/get_raffle", async (req, res) => {
 
 app.get("/api/validators", async (req, res) => {
   try {
+    const key = "validators";
+
+    const cache = toolCache.get(key);
+
+    if (cache) {
+      return res.send(cache);
+    }
+
     const validators = await getValidators(client);
 
+    toolCache.set(key, validators, cache1minTTL);
     return res.send(validators);
   } catch (err) {
     return res.status(500).send(err);
