@@ -11,7 +11,7 @@ const db = require("./index_db");
 
 const Listing = db.listings;
 const Vesting = db.vestings;
-const { fetchVestingContract, getRaffle, uint32ArrayToHex, getValidators } = require("./lib/index");
+const { fetchVestingContract, getRaffle, uint32ArrayToHex, getValidators, getVestingDataLight } = require("./lib/index");
 
 const toolCache = new NodeCache();
 
@@ -419,6 +419,26 @@ app.get("/api/get_all_raffles", async (req, res) => {
   } catch (err) {
     return res.status(500).send(err);
   }
+});
+
+app.get("/api/get_vesting_data_light", async (req, res) => {
+  const contractHash = req.query.contractHash;
+  const key = "get_vesting_data_light" + contractHash;
+
+  const cache = toolCache.get(key);
+
+  if (cache) {
+    return res.send(cache);
+  }
+
+  getVestingDataLight(contractHash, client)
+    .then((data) => {
+      toolCache.set(key, data, cache5minTTL);
+      return res.send(data);
+    })
+    .catch((err) => {
+      return res.status(500).send(err);
+    });
 });
 
 app.get("/api/getbalance", async (req, res) => {
