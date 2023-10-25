@@ -361,10 +361,18 @@ app.get("/api/get_vesting_list", async (req, res) => {
 
 app.get("/api/get_raffle", async (req, res) => {
   const contractHash = req.query.contractHash;
+  const key = "get_raffle" + contractHash;
 
   try {
+    const cache = toolCache.get(key);
+
+    if (cache) {
+      return res.send(cache);
+    }
+
     const raffle = await getRaffle(contractHash, client);
 
+    toolCache.set(key, raffle, cache2minTTL);
     return res.send(raffle);
   } catch (err) {
     return res.status(500).send(err);
