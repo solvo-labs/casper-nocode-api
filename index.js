@@ -177,8 +177,15 @@ app.get("/api/getNamedKeys", async (req, res) => {
 
 app.get("/api/getMarketplace", async (req, res) => {
   const contractHash = req.query.contractHash;
+  const key = "marketplace" + contractHash;
 
   try {
+    const cache = toolCache.get(key);
+
+    if (cache) {
+      return res.send(cache);
+    }
+
     const contract = new Contracts.Contract(client);
     contract.setContractHash(contractHash);
 
@@ -188,6 +195,7 @@ app.get("/api/getMarketplace", async (req, res) => {
 
     marketplace.listingCount = await contract.queryContractData(["listing_counter"]);
 
+    toolCache.set(key, marketplace, cache5minTTL);
     return res.send(marketplace);
   } catch (err) {
     return res.status(500).send(err);
