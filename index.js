@@ -20,8 +20,9 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(cors());
 
 const cache30minTTL = 1800; //  30 minutes
-const cache5minTTL = 300; //  30 minutes
-const cache1minTTL = 60; //  30 minutes
+const cache5minTTL = 300; //  5 minutes
+const cache2minTTL = 120; //  2 minutes
+const cache1minTTL = 60; //  1 minutes
 
 const client = new CasperClient("https://rpc.testnet.casperlabs.io/rpc");
 
@@ -163,7 +164,7 @@ app.get("/api/getNamedKeys", async (req, res) => {
     try {
       const data = await getNamedKeys(client, stateRootHash, CLPublicKey.fromHex(pubkey));
 
-      toolCache.set("named-key" + pubkey, data.namedKeys, [cache5minTTL]);
+      toolCache.set("named-key" + pubkey, data.namedKeys, cache2minTTL);
 
       return res.send(data.namedKeys);
     } catch {
