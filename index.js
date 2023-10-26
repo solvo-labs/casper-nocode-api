@@ -295,6 +295,10 @@ app.get("/api/get_vesting_contract", async (req, res) => {
 
     vesting.contract_name = await contract.queryContractData(["contract_name"]);
     vesting.cep18_contract_hash = await contract.queryContractData(["cep18_contract_hash"]);
+    const contract2 = new Contracts.Contract(client);
+    contract2.setContractHash("hash-" + uint32ArrayToHex(vesting.cep18_contract_hash));
+    vesting.decimals = await contract2.queryContractData(["decimals"]);
+    vesting.token_symbol = await contract2.queryContractData(["symbol"]);
     vesting.cliff_timestamp = await contract.queryContractData(["cliff_timestamp"]);
     vesting.duration = await contract.queryContractData(["duration"]);
     vesting.end_date = await contract.queryContractData(["end_date"]);
