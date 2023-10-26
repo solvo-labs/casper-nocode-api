@@ -230,6 +230,20 @@ app.post("/api/add_listing", async (req, res) => {
     });
 });
 
+app.get("/api/sold-nft", async (req, res) => {
+  const id = req.query.id;
+
+  const condition = { _id: id };
+
+  Listing.updateOne(condition, { active: false })
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((error) => {
+      res.status(500).send(error);
+    });
+});
+
 app.get("/api/fetch_my_listing", async (req, res) => {
   const marketplaceContract = req.query.contractHash;
 
