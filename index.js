@@ -132,16 +132,19 @@ app.get("/api/getNftMetadata", async (req, res) => {
   const cache = toolCache.get(key);
 
   if (cache) {
-    return res.send(cache);
+    return res.send(JSON.parse(cache));
   }
 
   try {
     const contract = new Contracts.Contract(client);
     contract.setContractHash(contractHash);
 
-    const result = await contract.queryContractDictionary("metadata_raw", index);
+    let result = {};
 
-    toolCache.set(key, result, cache30minTTL);
+    result.metadata = await contract.queryContractDictionary("metadata_raw", index);
+    result.owner = await contract.queryContractDictionary("token_owners", index);
+
+    toolCache.set(key, JSON.stringify(result), cache30minTTL);
     return res.send(result);
   } catch (err) {
     return res.status(500).send(err);
