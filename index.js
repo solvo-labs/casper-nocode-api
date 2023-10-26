@@ -117,7 +117,7 @@ app.get("/api/getCollection", async (req, res) => {
     collection.number_of_minted_tokens = await contract.queryContractData(["number_of_minted_tokens"]);
     collection.json_schema = await contract.queryContractData(["json_schema"]);
 
-    toolCache.set(key, collection, cache30minTTL);
+    toolCache.set(key, collection, cache2minTTL);
     return res.send(collection);
   } catch (err) {
     return res.status(500).send(err);
