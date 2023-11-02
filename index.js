@@ -499,3 +499,28 @@ app.get("/api/getbalance", async (req, res) => {
       return res.status(500).send(error);
     });
 });
+
+app.get("/api/getLootbox", async (req, res) => {
+  const contractHash = req.query.contractHash;
+  const key = "lootbox" + contractHash;
+
+  try {
+    const cache = toolCache.get(key);
+
+    if (cache) {
+      return res.send(cache);
+    }
+
+    const contract = new Contracts.Contract(client);
+    contract.setContractHash(contractHash);
+
+    let lootbox = {};
+
+    lootbox.asset = await contract.queryContractData(["asset"]);
+
+    toolCache.set(key, lootbox, cache5minTTL);
+    return res.send(lootbox);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
