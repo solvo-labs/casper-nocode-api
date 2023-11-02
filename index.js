@@ -517,6 +517,7 @@ app.get("/api/getLootbox", async (req, res) => {
     let lootbox = {};
 
     lootbox.asset = await contract.queryContractData(["asset"]);
+    lootbox.nft_collection = await contract.queryContractData(["nft_collection"]);
 
     toolCache.set(key, lootbox, cache5minTTL);
     return res.send(lootbox);
