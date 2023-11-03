@@ -12,7 +12,7 @@ const db = require("./index_db");
 const Listing = db.listings;
 const Vesting = db.vestings;
 const { fetchVestingContract, getRaffle, uint32ArrayToHex, getValidators, getVestingDataLight } = require("./lib/index");
-
+const { fetchLootboxItem, fetchLootboxItems } = require("./lib/lootbox");
 const toolCache = new NodeCache();
 
 app.use(express.json({ limit: "100mb" }));
@@ -521,6 +521,46 @@ app.get("/api/getLootbox", async (req, res) => {
 
     toolCache.set(key, lootbox, cache5minTTL);
     return res.send(lootbox);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
+
+app.get("/api/fetchLootboxItem", async (req, res) => {
+  const contractHash = req.query.contractHash;
+  const index = req.query.index;
+
+  try {
+    const instance = new CasperServiceByJsonRPC("https://rpc.testnet.casperlabs.io/rpc");
+
+    const stateRootHash = await instance.getStateRootHash();
+
+    const dt = await client.nodeClient.getBlockState(stateRootHash, `${contractHash}`, []);
+
+    const lootboxItem = await fetchLootboxItem(stateRootHash, index, dt);
+
+    return res.send(lootboxItem);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
+
+app.get("/api/fetchLootboxItems", async (req, res) => {
+  const contractHash = req.query.contractHash;
+
+  try {
+    const instance = new CasperServiceByJsonRPC("https://rpc.testnet.casperlabs.io/rpc");
+
+    const stateRootHash = await instance.getStateRootHash();
+
+    const dt = await client.nodeClient.getBlockState(stateRootHash, `${contractHash}`, []);
+
+    const contract = new Contracts.Contract(client);
+    contract.setContractHash(contractHash);
+
+    const lootboxItems = await fetchLootboxItems(stateRootHash, contract, dt);
+
+    return res.send(lootboxItem);
   } catch (err) {
     return res.status(500).send(err);
   }

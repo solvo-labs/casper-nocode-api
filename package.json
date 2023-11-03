@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@script-wiz/wiz-data": "^1.0.3",
     "body-parser": "^1.20.2",
     "casper-js-sdk": "^2.13.1",
     "cors": "^2.8.5",
