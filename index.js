@@ -172,7 +172,6 @@ app.get("/api/getNamedKeys", async (req, res) => {
       return res.send([]);
     }
   } catch (err) {
-    console.log(err);
     return res.status(500).send([]);
   }
 });
@@ -337,7 +336,6 @@ app.get("/api/set_vesting_recipients", async (req, res) => {
   const allocations = await Promise.all(allocationsPromises);
 
   const finalData = recipients.map((rec, index) => {
-    console.log(allocations[index].data.toNumber());
     return {
       v_index: index,
       recipient: uint32ArrayToHex(rec.data.data),
