@@ -533,15 +533,24 @@ app.get("/api/fetchLootboxItem", async (req, res) => {
   const contractHash = req.query.contractHash;
   const index = req.query.index;
 
+  const key = "lootbox" + contractHash + index;
+
   try {
+    const cache = toolCache.get(key);
+    if (cache) {
+      return res.send(cache);
+    }
+
     const stateRootHash = await rpcInstance.getStateRootHash();
 
     const dt = await client.nodeClient.getBlockState(stateRootHash, `${contractHash}`, []);
 
     const lootboxItem = await fetchLootboxItem(stateRootHash, index, dt);
 
+    toolCache.set(key, lootboxItem, cache5minTTL);
     return res.send(lootboxItem);
   } catch (err) {
+    console.log(err);
     return res.status(500).send(err);
   }
 });
