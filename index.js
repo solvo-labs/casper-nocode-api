@@ -511,9 +511,16 @@ app.get("/api/getLootbox", async (req, res) => {
     contract.setContractHash(contractHash);
 
     let lootbox = {};
-
+    lootbox.key = contractHash;
     lootbox.asset = await contract.queryContractData(["asset"]);
-    lootbox.nft_collection = await contract.queryContractData(["nft_collection"]);
+    lootbox.nft_collection = uint32ArrayToHex((await contract.queryContractData(["nft_collection"])).data);
+    lootbox.deposited_item_count = (await contract.queryContractData(["deposited_item_count"])).toNumber();
+    lootbox.description = await contract.queryContractData(["description"]);
+    lootbox.item_count = (await contract.queryContractData(["item_count"])).toNumber();
+    lootbox.items_per_lootbox = (await contract.queryContractData(["items_per_lootbox"])).toNumber();
+    lootbox.lootbox_count = (await contract.queryContractData(["lootbox_count"])).toNumber();
+    lootbox.lootbox_price = (await contract.queryContractData(["lootbox_price"])).toNumber();
+    lootbox.name = await contract.queryContractData(["name"]);
 
     toolCache.set(key, lootbox, cache5minTTL);
     return res.send(lootbox);
