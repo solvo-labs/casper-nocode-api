@@ -11,7 +11,7 @@ const db = require("./index_db");
 
 const Listing = db.listings;
 const Vesting = db.vestings;
-const { fetchVestingContract, getRaffle, uint32ArrayToHex, getValidators, getVestingDataLight } = require("./lib/index");
+const { fetchVestingContract, getRaffle, uint32ArrayToHex, getValidators, getVestingDataLight, RPC } = require("./lib/index");
 const { fetchLootboxItem, fetchLootboxItems } = require("./lib/lootbox");
 const toolCache = new NodeCache();
 
@@ -24,7 +24,8 @@ const cache5minTTL = 300; //  5 minutes
 const cache2minTTL = 120; //  2 minutes
 const cache1minTTL = 60; //  1 minutes
 
-const client = new CasperClient("https://rpc.testnet.casperlabs.io/rpc");
+const client = new CasperClient(RPC);
+const rpcInstance = new CasperServiceByJsonRPC(RPC);
 
 db.mongoose
   .connect(db.url, {
@@ -87,9 +88,7 @@ app.get("/api/getERC20Token", async (req, res) => {
 
 app.get("/api/stateRootHash", async (req, res) => {
   try {
-    const instance = new CasperServiceByJsonRPC("https://rpc.testnet.casperlabs.io/rpc");
-
-    const stateRootHash = await instance.getStateRootHash();
+    const stateRootHash = await rpcInstance.getStateRootHash();
     return res.send(stateRootHash);
   } catch (err) {
     return res.status(500).send(err);
@@ -155,9 +154,8 @@ app.get("/api/getNamedKeys", async (req, res) => {
   const pubkey = req.query.pubkey;
 
   try {
-    const instance = new CasperServiceByJsonRPC("https://rpc.testnet.casperlabs.io/rpc");
+    const stateRootHash = await rpcInstance.getStateRootHash();
 
-    const stateRootHash = await instance.getStateRootHash();
     const cache = toolCache.get("named-key" + pubkey);
 
     if (cache) {
@@ -531,9 +529,7 @@ app.get("/api/fetchLootboxItem", async (req, res) => {
   const index = req.query.index;
 
   try {
-    const instance = new CasperServiceByJsonRPC("https://rpc.testnet.casperlabs.io/rpc");
-
-    const stateRootHash = await instance.getStateRootHash();
+    const stateRootHash = await rpcInstance.getStateRootHash();
 
     const dt = await client.nodeClient.getBlockState(stateRootHash, `${contractHash}`, []);
 
@@ -549,9 +545,7 @@ app.get("/api/fetchLootboxItems", async (req, res) => {
   const contractHash = req.query.contractHash;
 
   try {
-    const instance = new CasperServiceByJsonRPC("https://rpc.testnet.casperlabs.io/rpc");
-
-    const stateRootHash = await instance.getStateRootHash();
+    const stateRootHash = await rpcInstance.getStateRootHash();
 
     const dt = await client.nodeClient.getBlockState(stateRootHash, `${contractHash}`, []);
 
