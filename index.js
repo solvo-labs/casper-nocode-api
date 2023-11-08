@@ -602,3 +602,39 @@ app.get("/api/get_all_lootboxes", async (req, res) => {
     return res.status(500).send(err);
   }
 });
+
+app.get("/api/fetch_lootbox_item_owners", async (req, res) => {
+  const contractHash = req.query.contractHash;
+  const key = "fetch_lootbox_item_owners" + contractHash;
+
+  try {
+    const cache = toolCache.get(key);
+
+    if (cache) {
+      res.send(cache);
+    }
+
+    const stateRootHash = await rpcInstance.getStateRootHash();
+    const contract = new Contracts.Contract(client);
+    contract.setContractHash(contractHash);
+
+    const indexCount = (await contract.queryContractData(["deposited_item_count"])).toNumber();
+
+    const item_owners = [];
+
+    for (let index = 0; index < indexCount; index++) {
+      try {
+        const data = uint32ArrayToHex((await contract.queryContractDictionary("item_owners", index.toString())).data);
+
+        item_owners.push({ index, owner: data });
+      } catch (error) {
+        item_owners.push({ index, owner: "" });
+      }
+    }
+
+    toolCache.set(key, item_owners, cache1minTTL);
+    return res.send(item_owners);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
