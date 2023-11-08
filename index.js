@@ -611,7 +611,7 @@ app.get("/api/fetch_lootbox_item_owners", async (req, res) => {
     const cache = toolCache.get(key);
 
     if (cache) {
-      res.send(cache);
+      return res.send(cache);
     }
 
     const stateRootHash = await rpcInstance.getStateRootHash();
