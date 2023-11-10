@@ -196,7 +196,7 @@ app.get("/api/getMarketplace", async (req, res) => {
 
     marketplace.listingCount = await contract.queryContractData(["listing_counter"]);
 
-    toolCache.set(key, marketplace, cache5minTTL);
+    toolCache.set(key, marketplace, cache1minTTL);
     return res.send(marketplace);
   } catch (err) {
     return res.status(500).send(err);
@@ -512,7 +512,7 @@ app.get("/api/getLootbox", async (req, res) => {
     const dt = await client.nodeClient.getBlockState(stateRootHash, `${contractHash}`, []);
     const lootbox = await fetchLootbox(contractHash, client, dt, stateRootHash);
 
-    toolCache.set(key, lootbox, cache5minTTL);
+    toolCache.set(key, lootbox, cache2minTTL);
     return res.send(lootbox);
   } catch (err) {
     console.log(err);
@@ -538,7 +538,7 @@ app.get("/api/fetchLootboxItem", async (req, res) => {
 
     const lootboxItem = await fetchLootboxItem(stateRootHash, index, dt);
 
-    toolCache.set(key, lootboxItem, cache5minTTL);
+    toolCache.set(key, lootboxItem, cache2minTTL);
     return res.send(lootboxItem);
   } catch (err) {
     console.log(err);
