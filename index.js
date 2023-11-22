@@ -114,11 +114,35 @@ app.get("/api/getCollection", async (req, res) => {
     collection.collection_symbol = await contract.queryContractData(["collection_symbol"]);
     collection.total_token_supply = await contract.queryContractData(["total_token_supply"]);
     collection.number_of_minted_tokens = await contract.queryContractData(["number_of_minted_tokens"]);
-    collection.json_schema = await contract.queryContractData(["json_schema"]);
-    collection.metadata_mutability = await contract.queryContractData(["metadata_mutability"]);
-    collection.minting_mode = await contract.queryContractData(["minting_mode"]);
-    collection.burn_mode = await contract.queryContractData(["burn_mode"]);
-    collection.reporting_mode = await contract.queryContractData(["reporting_mode"]);
+
+    toolCache.set(key, collection, cache2minTTL);
+    return res.send(collection);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
+
+app.get("/api/getCollectionDetails", async (req, res) => {
+  const contractHash = req.query.contractHash;
+  const key = "collection-details" + contractHash;
+  const cache = toolCache.get(key);
+
+  if (cache) {
+    return res.send(cache);
+  }
+
+  try {
+    const contract = new Contracts.Contract(client);
+    contract.setContractHash(contractHash);
+
+    let collection = {};
+
+    collection.collection_name = await contract.queryContractData(["collection_name"]);
+    collection.collection_symbol = await contract.queryContractData(["collection_symbol"]);
+    collection.metadata_mutability = (await contract.queryContractData(["metadata_mutability"])).toNumber();
+    collection.minting_mode = (await contract.queryContractData(["minting_mode"])).toNumber();
+    collection.burn_mode = (await contract.queryContractData(["burn_mode"])).toNumber();
+    collection.reporting_mode = (await contract.queryContractData(["reporting_mode"])).toNumber();
 
     toolCache.set(key, collection, cache2minTTL);
     return res.send(collection);
