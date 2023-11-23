@@ -168,8 +168,14 @@ app.get("/api/getNftMetadata", async (req, res) => {
 
     let result = {};
 
-    result.metadata = await contract.queryContractDictionary("metadata_raw", index);
-    result.owner = await contract.queryContractDictionary("token_owners", index);
+    try {
+      await contract.queryContractDictionary("burnt_tokens", index);
+      result.burnt = true;
+    } catch {
+      result.burnt = false;
+      result.metadata = await contract.queryContractDictionary("metadata_raw", index);
+      result.owner = await contract.queryContractDictionary("token_owners", index);
+    }
 
     toolCache.set(key, JSON.stringify(result), cache30minTTL);
     return res.send(result);
