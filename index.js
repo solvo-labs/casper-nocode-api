@@ -115,7 +115,7 @@ app.get("/api/getCollection", async (req, res) => {
     collection.total_token_supply = await contract.queryContractData(["total_token_supply"]);
     collection.number_of_minted_tokens = await contract.queryContractData(["number_of_minted_tokens"]);
 
-    toolCache.set(key, collection, cache2minTTL);
+    toolCache.set(key, collection, cache1minTTL);
     return res.send(collection);
   } catch (err) {
     return res.status(500).send(err);
@@ -144,7 +144,7 @@ app.get("/api/getCollectionDetails", async (req, res) => {
     collection.burn_mode = (await contract.queryContractData(["burn_mode"])).toNumber();
     collection.reporting_mode = (await contract.queryContractData(["reporting_mode"])).toNumber();
 
-    toolCache.set(key, collection, cache2minTTL);
+    toolCache.set(key, collection, cache1minTTL);
     return res.send(collection);
   } catch (err) {
     return res.status(500).send(err);
@@ -423,7 +423,7 @@ app.get("/api/get_raffle", async (req, res) => {
 
     const raffle = await getRaffle(contractHash, client);
 
-    toolCache.set(key, raffle, cache2minTTL);
+    toolCache.set(key, raffle, cache1minTTL);
     return res.send(raffle);
   } catch (err) {
     return res.status(500).send(err);
@@ -546,7 +546,7 @@ app.get("/api/getLootbox", async (req, res) => {
     const dt = await client.nodeClient.getBlockState(stateRootHash, `${contractHash}`, []);
     const lootbox = await fetchLootbox(contractHash, client, dt, stateRootHash);
 
-    toolCache.set(key, lootbox, cache2minTTL);
+    toolCache.set(key, lootbox, cache1minTTL);
     return res.send(lootbox);
   } catch (err) {
     console.log(err);
@@ -572,7 +572,7 @@ app.get("/api/fetchLootboxItem", async (req, res) => {
 
     const lootboxItem = await fetchLootboxItem(stateRootHash, index, dt);
 
-    toolCache.set(key, lootboxItem, cache2minTTL);
+    toolCache.set(key, lootboxItem, cache1minTTL);
     return res.send(lootboxItem);
   } catch (err) {
     console.log(err);
