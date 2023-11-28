@@ -143,6 +143,7 @@ app.get("/api/getCollectionDetails", async (req, res) => {
     collection.minting_mode = (await contract.queryContractData(["minting_mode"])).toNumber();
     collection.burn_mode = (await contract.queryContractData(["burn_mode"])).toNumber();
     collection.reporting_mode = (await contract.queryContractData(["reporting_mode"])).toNumber();
+    collection.number_of_minted_tokens = (await contract.queryContractData(["number_of_minted_tokens"])).toNumber();
 
     toolCache.set(key, collection, cache1minTTL);
     return res.send(collection);
