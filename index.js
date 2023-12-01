@@ -12,7 +12,7 @@ const db = require("./index_db");
 
 const Listing = db.listings;
 const Vesting = db.vestings;
-const { fetchVestingContract, getRaffle, uint32ArrayToHex, getValidators, getVestingDataLight, RPC, fetchTimeableNfts } = require("./lib/index");
+const { fetchVestingContract, getRaffle, uint32ArrayToHex, getValidators, getVestingDataLight, RPC } = require("./lib/index");
 const { fetchLootboxItem, fetchLootboxItems, fetchLootbox } = require("./lib/lootbox");
 const toolCache = new NodeCache();
 
