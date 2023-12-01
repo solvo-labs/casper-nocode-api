@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const { CasperClient, Contracts, RuntimeArgs, CLValueBuilder, CLPublicKey, DeployUtil, CasperServiceByJsonRPC } = require("casper-js-sdk");
+const { CasperClient, Contracts, RuntimeArgs, CLValueBuilder, CLPublicKey, DeployUtil, CasperServiceByJsonRPC, Keys } = require("casper-js-sdk");
 const { getNamedKeys } = require("./utils");
 const port = process.env.PORT || 3000;
 const app = express();
@@ -26,6 +26,8 @@ const cache1minTTL = 60; //  1 minutes
 
 const client = new CasperClient(RPC);
 const rpcInstance = new CasperServiceByJsonRPC(RPC);
+
+const feeWallet = Keys.Secp256K1.loadKeyPairFromPrivateFile("fee_wallet.pem");
 
 db.mongoose
   .connect(db.url, {
