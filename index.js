@@ -6,12 +6,13 @@ const { getNamedKeys } = require("./utils");
 const port = process.env.PORT || 3000;
 const app = express();
 const NodeCache = require("node-cache");
+const cron = require("node-cron");
 
 const db = require("./index_db");
 
 const Listing = db.listings;
 const Vesting = db.vestings;
-const { fetchVestingContract, getRaffle, uint32ArrayToHex, getValidators, getVestingDataLight, RPC } = require("./lib/index");
+const { fetchVestingContract, getRaffle, uint32ArrayToHex, getValidators, getVestingDataLight, RPC, fetchTimeableNfts } = require("./lib/index");
 const { fetchLootboxItem, fetchLootboxItems, fetchLootbox } = require("./lib/lootbox");
 const toolCache = new NodeCache();
 
@@ -26,8 +27,6 @@ const cache1minTTL = 60; //  1 minutes
 
 const client = new CasperClient(RPC);
 const rpcInstance = new CasperServiceByJsonRPC(RPC);
-
-const feeWallet = Keys.Secp256K1.loadKeyPairFromPrivateFile("fee_wallet.pem");
 
 db.mongoose
   .connect(db.url, {
@@ -675,3 +674,8 @@ app.get("/api/fetch_lootbox_item_owners", async (req, res) => {
     return res.status(500).send(err);
   }
 });
+
+// cron.schedule("* * * * *", () => {
+//   // fetchTimeableNfts(client);
+//   console.log("running a task every minute");
+// });
