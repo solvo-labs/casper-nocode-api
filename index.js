@@ -229,13 +229,28 @@ app.get("/api/getMarketplace", async (req, res) => {
     let marketplace = {};
 
     marketplace.contractName = await contract.queryContractData(["contract_name"]);
-
     marketplace.listingCount = await contract.queryContractData(["listing_counter"]);
 
     toolCache.set(key, marketplace, cache1minTTL);
     return res.send(marketplace);
   } catch (err) {
     return res.status(500).send(err);
+  }
+});
+
+app.get("/api/getMarketplaceWhitelistInfo", async (req, res) => {
+  const contractHash = req.query.contractHash;
+  const collectionHash = req.query.collectionHash;
+
+  try {
+    const contract = new Contracts.Contract(client);
+    contract.setContractHash(contractHash);
+
+    const flag = await contract.queryContractDictionary("whitelist_dict", collectionHash);
+
+    return res.send(flag);
+  } catch (err) {
+    return res.status(200).send(false);
   }
 });
 
