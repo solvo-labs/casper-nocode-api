@@ -271,7 +271,7 @@ app.get("/api/sold-nft", async (req, res) => {
 
   const condition = { _id: id };
 
-  Listing.updateOne(condition, { active: false })
+  Listing.updateOne(condition)
     .then((data) => {
       res.send(data);
     })
@@ -299,15 +299,30 @@ app.get("/api/fetch_my_listing", async (req, res) => {
 app.get("/api/fetch_listing", async (req, res) => {
   const condition = { active: true };
 
-  Listing.find(condition)
-    .then((data) => {
-      res.send(data);
-    })
-    .catch((err) => {
-      res.status(500).send({
-        message: err.message || "Some error occurred while retrieving listings.",
-      });
+  const contract = new Contracts.Contract(client);
+
+  const listingData = await Listing.find(condition);
+
+  if (listingData.length > 0) {
+    const allDataPromises = listingData.map((ls) => {
+      contract.setContractHash(ls.collection_hash);
+      return contract.queryContractDictionary("token_owners", ls.tokenId.toString());
     });
+    const owners = await Promise.all(allDataPromises);
+    const ownerHexes = owners.map((ow) => "hash-" + uint32ArrayToHex(ow.data.data));
+
+    const finalListingData = [];
+
+    ownerHexes.forEach((ow, index) => {
+      if (ow === listingData[index].marketplace) {
+        finalListingData.push(listingData[index]);
+      }
+    });
+
+    return res.send(finalListingData);
+  } else {
+    return res.send([]);
+  }
 });
 
 app.get("/api/get_vesting_contract", async (req, res) => {
