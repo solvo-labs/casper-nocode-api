@@ -314,16 +314,17 @@ app.get("/api/fetch_my_listing", async (req, res) => {
 app.get("/api/fetch_listing", async (req, res) => {
   const condition = { active: true };
 
-  const contract = new Contracts.Contract(client);
-
   const listingData = await Listing.find(condition);
 
   if (listingData.length > 0) {
     const allDataPromises = listingData.map((ls) => {
+      const contract = new Contracts.Contract(client);
       contract.setContractHash(ls.collection_hash);
       return contract.queryContractDictionary("token_owners", ls.tokenId.toString());
     });
+
     const owners = await Promise.all(allDataPromises);
+
     const ownerHexes = owners.map((ow) => "hash-" + uint32ArrayToHex(ow.data.data));
 
     const finalListingData = [];
