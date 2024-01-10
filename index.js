@@ -710,3 +710,27 @@ app.get("/api/fetch_lootbox_item_owners", async (req, res) => {
 //   // fetchTimeableNfts(client);
 //   console.log("running a task every minute");
 // });
+
+app.get("/api/getStakeDetails", async (req, res) => {
+  const contractHash = req.query.contractHash;
+  const key = "stake" + contractHash;
+  const cache = toolCache.get(key);
+
+  if (cache) {
+    return res.send(cache);
+  }
+
+  try {
+    const contract = new Contracts.Contract(client);
+    contract.setContractHash(contractHash);
+
+    let stake = {};
+
+    stake.reward_rate = await contract.queryContractData(["reward_rate"]).toNumber();
+
+    toolCache.set(key, stake, cache1minTTL);
+    return res.send(stake);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
