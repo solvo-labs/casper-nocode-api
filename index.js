@@ -12,7 +12,7 @@ const db = require("./index_db");
 
 const Listing = db.listings;
 const Vesting = db.vestings;
-const { fetchVestingContract, getRaffle, uint32ArrayToHex, getValidators, getVestingDataLight, RPC } = require("./lib/index");
+const { fetchVestingContract, getRaffle, uint32ArrayToHex, getValidators, getVestingDataLight, RPC, getStakePool } = require("./lib/index");
 const { fetchLootboxItem, fetchLootboxItems, fetchLootbox } = require("./lib/lootbox");
 const toolCache = new NodeCache();
 
@@ -706,6 +706,42 @@ app.get("/api/fetch_lootbox_item_owners", async (req, res) => {
   }
 });
 
+app.get("/api/get_all_stakes", async (req, res) => {
+  const contractHash = req.query.contractHash;
+  const key = "get_all_stakes" + contractHash;
+  const cache = toolCache.get(key);
+
+  if (cache) {
+    return res.send(cache);
+  }
+
+  try {
+    const contract = new Contracts.Contract(client);
+    contract.setContractHash(contractHash);
+
+    const data_count = await contract.queryContractData(["data_count"]);
+    const count = data_count.toNumber();
+
+    let promisses = [];
+    for (let index = 0; index < count; index++) {
+      const result = contract.queryContractDictionary("data_dict", index.toString());
+      promisses.push(result);
+    }
+
+    const promiseResult = await Promise.all(promisses);
+    const stakeContractHashes = promiseResult.map((stake) => "hash-" + stake.data);
+
+    const stakePromisses = stakeContractHashes.map((stakeHash) => getStakePool(stakeHash, client));
+
+    const stakes = await Promise.all(stakePromisses);
+
+    toolCache.set(key, stakes, cache1minTTL);
+
+    return res.send(stakes);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
 // cron.schedule("* * * * *", () => {
 //   // fetchTimeableNfts(client);
 //   console.log("running a task every minute");
