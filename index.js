@@ -708,7 +708,8 @@ app.get("/api/fetch_lootbox_item_owners", async (req, res) => {
 
 app.get("/api/get_all_stakes", async (req, res) => {
   const contractHash = req.query.contractHash;
-  const key = "get_all_stakes" + contractHash;
+  const accountHash = req.query.accountHash;
+  const key = "get_all_stakes" + contractHash + accountHash;
   const cache = toolCache.get(key);
 
   if (cache) {
@@ -731,7 +732,7 @@ app.get("/api/get_all_stakes", async (req, res) => {
     const promiseResult = await Promise.all(promisses);
     const stakeContractHashes = promiseResult.map((stake) => "hash-" + stake.data);
 
-    const stakePromisses = stakeContractHashes.map((stakeHash) => getStakePool(stakeHash, client));
+    const stakePromisses = stakeContractHashes.map((stakeHash) => getStakePool(stakeHash, accountHash, client));
 
     const stakes = await Promise.all(stakePromisses);
 
