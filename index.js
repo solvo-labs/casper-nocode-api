@@ -491,11 +491,11 @@ app.get("/api/get_all_raffles", async (req, res) => {
   const key = "get_all_raffles" + contractHash;
   const cache = toolCache.get(key);
 
-  if (cache) {
-    return res.send(cache);
-  }
-
   try {
+    if (cache) {
+      return res.send(JSON.parse(cache));
+    }
+
     const contract = new Contracts.Contract(client);
     contract.setContractHash(contractHash);
 
@@ -515,10 +515,11 @@ app.get("/api/get_all_raffles", async (req, res) => {
 
     const raffles = await Promise.all(rafflePromisses);
 
-    toolCache.set(key, raffles, cache1minTTL);
+    toolCache.set(key, JSON.stringify(raffles), cache1minTTL);
 
     return res.send(raffles);
   } catch (err) {
+    console.log("here");
     return res.status(500).send(err);
   }
 });
