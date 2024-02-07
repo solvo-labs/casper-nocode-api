@@ -9,6 +9,7 @@ const NodeCache = require("node-cache");
 const cron = require("node-cron");
 
 const db = require("./index_db");
+const CSPR = require("./csprCloud");
 
 const Listing = db.listings;
 const Vesting = db.vestings;
@@ -27,6 +28,7 @@ const cache1minTTL = 60; //  1 minutes
 
 const client = new CasperClient(RPC);
 const rpcInstance = new CasperServiceByJsonRPC(RPC);
+const csprCloud = new CSPR();
 
 db.mongoose
   .connect(db.url, {
@@ -748,3 +750,73 @@ app.get("/api/get_all_stakes", async (req, res) => {
 //   // fetchTimeableNfts(client);
 //   console.log("running a task every minute");
 // });
+
+// ---------------------------CSPR CLOUD----------------------------//
+app.get("/api/getAccount", async (req, res) => {
+  const account = req.query.account;
+
+  try {
+    const result = await csprCloud.getAccount(account);
+    res.send(result.data);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+});
+
+app.get("/api/getContractWithPackageHash", async (req, res) => {
+  const contract_package_hash = req.query.contract_package_hash;
+
+  try {
+    const result = await csprCloud.getContractPackageHash(contract_package_hash);
+    res.send(result.data);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+});
+
+app.get("/api/getNFTDetail", async (req, res) => {
+  const contract_package_hash = req.query.contract_package_hash;
+  const token_id = req.query.token_id;
+
+  try {
+    const result = await csprCloud.getNFTDetail(contract_package_hash, token_id);
+    res.send(result.data);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+});
+
+app.get("/api/getAccountNFTs", async (req, res) => {
+  const account_identifier = req.query.account_identifier;
+
+  try {
+    const result = await csprCloud.getAccountNFTs(account_identifier);
+    res.send(result.data);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+});
+
+app.get("/api/getContractPackageNFTs", async (req, res) => {
+  const contract_hash = req.query.contract_hash;
+
+  try {
+    const contract = await csprCloud.getContract(contract_hash);
+    const contract_package_hash = contract.data.data.contract_package_hash;
+    const result = await csprCloud.getContractPackageNFTs(contract_package_hash);
+    res.send(result.data.data);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+});
+
+app.get("/api/getTokens", async (req, res) => {
+  const account_identifier = req.query.account_identifier;
+
+  try {
+    const result = await csprCloud.getTokens(account_identifier);
+    res.send(result.data.data);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+});
