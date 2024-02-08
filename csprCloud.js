@@ -27,7 +27,7 @@ class CSPR {
   //   return this.axiosInstance.get("/accounts");
   // };
 
-  getContractWithPackageHash = async (contract_hash) => {
+  getContractWithPackageHash = async (contract_package_hash) => {
     return this.axiosInstance.get("/contract-packages/" + contract_package_hash + "/contracts");
   };
 
