@@ -767,8 +767,8 @@ app.get("/api/getContractWithPackageHash", async (req, res) => {
   const contract_package_hash = req.query.contract_package_hash;
 
   try {
-    const result = await csprCloud.getContractPackageHash(contract_package_hash);
-    res.send(result.data);
+    const result = await csprCloud.getContractWithPackageHash(contract_package_hash);
+    res.send(result.data.data);
   } catch (error) {
     return res.status(500).send(error);
   }
