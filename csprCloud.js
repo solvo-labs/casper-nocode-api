@@ -36,15 +36,15 @@ class CSPR {
   };
 
   getAccountNFTs = async (account_identifier) => {
-    return this.axiosInstance.get("/accounts/" + account_identifier + "/nft-tokens");
+    return this.axiosInstance.get("/accounts/" + account_identifier + "/nft-tokens?page_size=250");
   };
 
   getContractPackageNFTs = async (contract_package_hash) => {
-    return this.axiosInstance.get("/contract-packages/" + contract_package_hash + "/nft-tokens");
+    return this.axiosInstance.get("/contract-packages/" + contract_package_hash + "/nft-tokens?page_size=250");
   };
 
   getTokens = async (account_identifier) => {
-    return this.axiosInstance.get("/accounts/" + account_identifier + "/ft-token-ownership", {
+    return this.axiosInstance.get("/accounts/" + account_identifier + "/ft-token-ownership?page_size=250", {
       params: {
         includes: "contract_package{name,metadata}",
       },
