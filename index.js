@@ -25,6 +25,8 @@ const cache30minTTL = 1800; //  30 minutes
 const cache5minTTL = 300; //  5 minutes
 const cache2minTTL = 120; //  2 minutes
 const cache1minTTL = 60; //  1 minutes
+const cache20secondTTL = 20; //  1 minutes
+const cache15secondTTL = 15; //  1 minutes
 
 const client = new CasperClient(RPC);
 const rpcInstance = new CasperServiceByJsonRPC(RPC);
@@ -203,7 +205,7 @@ app.get("/api/getNamedKeys", async (req, res) => {
     try {
       const data = await getNamedKeys(client, stateRootHash, CLPublicKey.fromHex(pubkey));
 
-      toolCache.set("named-key" + pubkey, data.namedKeys, cache1minTTL);
+      toolCache.set("named-key" + pubkey, data.namedKeys, cache15secondTTL);
 
       return res.send(data.namedKeys);
     } catch {
